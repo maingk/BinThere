@@ -1,4 +1,5 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import type { PDFFont, PDFPage } from "pdf-lib";
 
 import { toteQrMatrix } from "@/lib/qr";
 import { formatToteLabel } from "@/lib/totes";
@@ -90,6 +91,18 @@ export interface LabelPdfOptions {
   copies?: number;
 }
 
+/** QR spec requires a 4-module quiet zone; without it scanners often fail. */
+const QUIET_MODULES = 4;
+
+interface TextLine {
+  text: string;
+  size: number;
+  font: PDFFont;
+  color: ReturnType<typeof rgb>;
+  /** Extra space above this line. */
+  leadBefore: number;
+}
+
 export async function buildLabelPdf({
   totes,
   origin,
@@ -137,62 +150,89 @@ export async function buildLabelPdf({
         });
       }
 
-      const padding = in2pt(0.12);
-      const textBlock = in2pt(0.4);
-      const qrSize = Math.min(
-        sheet.labelHeight - padding * 2,
-        sheet.labelWidth - padding * 2 - textBlock,
-      );
+      const padding = in2pt(0.08);
+      const innerW = sheet.labelWidth - padding * 2;
+      const innerH = sheet.labelHeight - padding * 2;
 
-      const matrix = toteQrMatrix(tote.code, origin);
-      const cell = qrSize / matrix.size;
-      const qrX = x + padding;
-      const qrY = y + (sheet.labelHeight - qrSize) / 2;
+      /*
+       * Wide stock (2x4) reads best with the QR beside the text; square stock
+       * has no room for a text column, so the text stacks underneath.
+       */
+      const sideBySide = sheet.labelWidth / sheet.labelHeight >= 1.5;
 
-      for (let r = 0; r < matrix.size; r += 1) {
-        for (let c = 0; c < matrix.size; c += 1) {
-          if (!matrix.isDark(r, c)) continue;
-          page.drawRectangle({
-            x: qrX + c * cell,
-            // QR rows run top-down; PDF y runs bottom-up.
-            y: qrY + (matrix.size - 1 - r) * cell,
-            width: cell,
-            height: cell,
-            color: rgb(0, 0, 0),
-          });
-        }
-      }
-
-      const textX = qrX + qrSize + in2pt(0.08);
-      const textWidth = x + sheet.labelWidth - padding - textX;
       const label = formatToteLabel(tote);
-      let cursorY = y + sheet.labelHeight / 2 + in2pt(0.16);
+      const titleSize = label ? (sideBySide ? 26 : 14) : sideBySide ? 13 : 7.5;
 
-      page.drawText(label ?? "NEW", {
-        x: textX,
-        y: cursorY,
-        size: label ? 16 : 11,
-        font: bold,
-        color: rgb(0, 0, 0),
-      });
-
-      cursorY -= in2pt(0.2);
-      page.drawText(tote.code, {
-        x: textX,
-        y: cursorY,
-        size: 7,
-        font: regular,
-        color: rgb(0.45, 0.45, 0.45),
-      });
+      const lines: TextLine[] = [
+        {
+          text: label ?? "SCAN TO SET UP",
+          size: titleSize,
+          font: bold,
+          color: rgb(0, 0, 0),
+          leadBefore: 0,
+        },
+      ];
 
       if (tote.name) {
-        cursorY -= in2pt(0.16);
-        page.drawText(truncate(tote.name, regular, 7, textWidth), {
-          x: textX,
-          y: cursorY,
-          size: 7,
+        lines.push({
+          text: tote.name,
+          size: sideBySide ? 9 : 7,
           font: regular,
           color: rgb(0.25, 0.25, 0.25),
+          leadBefore: in2pt(0.045),
+        });
+      }
+
+      lines.push({
+        text: tote.code,
+        size: 6.5,
+        font: regular,
+        color: rgb(0.55, 0.55, 0.55),
+        leadBefore: in2pt(0.035),
+      });
+
+      const textHeight = lines.reduce(
+        (total, line) => total + line.leadBefore + line.size,
+        0,
+      );
+      const textGap = in2pt(0.06);
+
+      // The QR takes whatever the text block leaves behind.
+      const qrBox = sideBySide
+        ? innerH
+        : Math.max(in2pt(0.6), Math.min(innerW, innerH - textHeight - textGap));
+
+      const qrX = sideBySide ? x + padding : x + (sheet.labelWidth - qrBox) / 2;
+      const qrY = sideBySide
+        ? y + (sheet.labelHeight - qrBox) / 2
+        : y + sheet.labelHeight - padding - qrBox;
+
+      drawQr(page, tote.code, origin, qrX, qrY, qrBox);
+
+      const textLeft = sideBySide ? qrX + qrBox + in2pt(0.12) : x + padding;
+      const textWidth = sideBySide
+        ? x + sheet.labelWidth - padding - textLeft
+        : innerW;
+
+      // Start at the top of the text block and walk down by baseline.
+      let cursorY = sideBySide
+        ? y + (sheet.labelHeight + textHeight) / 2
+        : qrY - textGap;
+
+      for (const line of lines) {
+        cursorY -= line.leadBefore + line.size;
+        const text = truncate(line.text, line.font, line.size, textWidth);
+        const lineX = sideBySide
+          ? textLeft
+          : x +
+            (sheet.labelWidth - line.font.widthOfTextAtSize(text, line.size)) /
+              2;
+        page.drawText(text, {
+          x: lineX,
+          y: cursorY,
+          size: line.size,
+          font: line.font,
+          color: line.color,
         });
       }
     });
@@ -201,9 +241,46 @@ export async function buildLabelPdf({
   return pdf.save();
 }
 
+/** Draws the QR, quiet zone included, fitted to a `box` square at (x, y). */
+function drawQr(
+  page: PDFPage,
+  code: string,
+  origin: string,
+  x: number,
+  y: number,
+  box: number,
+) {
+  const matrix = toteQrMatrix(code, origin);
+  const cell = box / (matrix.size + QUIET_MODULES * 2);
+  const offset = QUIET_MODULES * cell;
+
+  // A white backing guarantees the quiet zone even on tinted label stock.
+  page.drawRectangle({
+    x,
+    y,
+    width: box,
+    height: box,
+    color: rgb(1, 1, 1),
+  });
+
+  for (let r = 0; r < matrix.size; r += 1) {
+    for (let c = 0; c < matrix.size; c += 1) {
+      if (!matrix.isDark(r, c)) continue;
+      page.drawRectangle({
+        x: x + offset + c * cell,
+        // QR rows run top-down; PDF y runs bottom-up.
+        y: y + offset + (matrix.size - 1 - r) * cell,
+        width: cell,
+        height: cell,
+        color: rgb(0, 0, 0),
+      });
+    }
+  }
+}
+
 function truncate(
   text: string,
-  font: { widthOfTextAtSize: (t: string, s: number) => number },
+  font: PDFFont,
   size: number,
   maxWidth: number,
 ): string {
