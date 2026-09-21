@@ -60,6 +60,8 @@ export default async function LoginPage({
         */}
         <ToteIllustration
           decorative
+          scan
+          instanceId="signin-tote"
           className="pointer-events-none absolute left-1/2 top-full -z-10 w-[min(155vw,680px)] max-w-none -translate-x-1/2 -translate-y-[14%] opacity-[0.55]"
         />
 

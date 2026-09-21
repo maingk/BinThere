@@ -23,12 +23,22 @@ export function ToteIllustration({
   className,
   title = "A storage tote with a QR label on the front",
   decorative = false,
+  scan = false,
+  instanceId = "tote",
 }: {
   className?: string;
   title?: string;
   /** Background use: hidden from screen readers, which would only hear noise. */
   decorative?: boolean;
+  /** Sweep a scan line across the label. Respects prefers-reduced-motion. */
+  scan?: boolean;
+  /** Distinguishes the SVG's internal ids if two instances share a page. */
+  instanceId?: string;
 }) {
+  const tubClip = `${instanceId}-tub`;
+  const labelClip = `${instanceId}-label`;
+  const scanGradient = `${instanceId}-scan`;
+
   return (
     <svg
       viewBox="0 0 200 170"
@@ -48,9 +58,29 @@ export function ToteIllustration({
 
       <defs>
         {/* Keeps the contents inside the tub, like real translucent plastic. */}
-        <clipPath id="tote-tub">
+        <clipPath id={tubClip}>
           <path d="M48 64 H152 L147 128 a9 9 0 0 1 -9 8 H62 a9 9 0 0 1 -9 -8 Z" />
         </clipPath>
+        <clipPath id={labelClip}>
+          <rect x="76" y="86" width="48" height="42" rx="6" />
+        </clipPath>
+        {/*
+          currentColor inside gradient stops resolves against the gradient
+          element itself, not the shape referencing it, so the colour has to
+          be set here rather than on the <g> that uses the fill.
+        */}
+        <linearGradient
+          id={scanGradient}
+          x1="0"
+          y1="0"
+          x2="0"
+          y2="1"
+          className="text-sky-500 dark:text-sky-300"
+        >
+          <stop offset="0%" stopColor="currentColor" stopOpacity="0" />
+          <stop offset="50%" stopColor="currentColor" stopOpacity="0.85" />
+          <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
+        </linearGradient>
       </defs>
 
       {/* Tub. */}
@@ -60,7 +90,7 @@ export function ToteIllustration({
       />
 
       {/* Contents showing through the front, tucked behind the label. */}
-      <g clipPath="url(#tote-tub)" className="opacity-80">
+      <g clipPath={`url(#${tubClip})`} className="opacity-80">
         <rect
           x="60"
           y="72"
@@ -99,7 +129,7 @@ export function ToteIllustration({
 
       {/* Moulded ribs, kept clear of the label. */}
       <g
-        clipPath="url(#tote-tub)"
+        clipPath={`url(#${tubClip})`}
         className="stroke-slate-400/35 dark:stroke-slate-400/20"
         strokeWidth="2"
         strokeLinecap="round"
@@ -123,7 +153,9 @@ export function ToteIllustration({
         width="48"
         height="42"
         rx="6"
-        className="fill-white stroke-slate-300 dark:fill-slate-900 dark:stroke-slate-600"
+        className={`fill-white stroke-slate-300 dark:fill-slate-900 dark:stroke-slate-600 ${
+          scan ? "tote-scan-frame" : ""
+        }`}
         strokeWidth="2"
       />
       <g className="fill-slate-800 dark:fill-slate-200">
@@ -142,6 +174,26 @@ export function ToteIllustration({
           ),
         )}
       </g>
+
+      {/* The scan sweep, clipped so it only ever travels across the label. */}
+      {scan ? (
+        <g clipPath={`url(#${labelClip})`} className="tote-scan-line">
+          <rect
+            x="76"
+            y="80"
+            width="48"
+            height="13"
+            fill={`url(#${scanGradient})`}
+          />
+          <rect
+            x="76"
+            y="86"
+            width="48"
+            height="1.2"
+            className="fill-sky-400 dark:fill-sky-200"
+          />
+        </g>
+      ) : null}
 
       {/* Lid, overhanging the tub on both sides. */}
       <path

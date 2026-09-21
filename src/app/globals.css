@@ -129,3 +129,64 @@
     @apply font-sans;
   }
 }
+/* ---------------------------------------------------------------- tote scan
+ * The QR label on the tote illustration is read by a sweeping scan line,
+ * which is the one thing the product actually does. Slow and low-contrast on
+ * purpose: it sits behind the sign-in form and must not pull focus.
+ *
+ * Motion is opt-in via the media query, so a reduced-motion preference gets
+ * the static label rather than a disabled animation.
+ */
+
+/*
+ * Hidden by default so a reduced-motion preference gets no beam at all.
+ * Without this the group renders parked at its start position, leaving a
+ * permanent stripe across the label.
+ */
+.tote-scan-line {
+  opacity: 0;
+}
+
+@keyframes tote-scan-sweep {
+  0%,
+  4% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  10% {
+    opacity: 1;
+  }
+  38% {
+    opacity: 1;
+  }
+  46%,
+  100% {
+    opacity: 0;
+    transform: translateY(46px);
+  }
+}
+
+@keyframes tote-scan-settle {
+  0%,
+  40% {
+    stroke-opacity: 1;
+  }
+  /* A brief confirmation flash as the sweep clears the label. */
+  50% {
+    stroke-opacity: 0.15;
+  }
+  62%,
+  100% {
+    stroke-opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .tote-scan-line {
+    animation: tote-scan-sweep 5.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+  .tote-scan-frame {
+    animation: tote-scan-settle 5.5s ease-in-out infinite;
+  }
+}
