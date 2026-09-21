@@ -8,10 +8,10 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: { default: "ToteNotes", template: "%s · ToteNotes" },
+  title: { default: "BinThere", template: "%s · BinThere" },
   description: "Scan a tote, see what's inside.",
   manifest: "/manifest.webmanifest",
-  appleWebApp: { capable: true, title: "ToteNotes", statusBarStyle: "default" },
+  appleWebApp: { capable: true, title: "BinThere", statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {

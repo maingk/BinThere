@@ -23,7 +23,7 @@ export function AppShell({
       <header className="bg-background/80 sticky top-0 z-20 border-b backdrop-blur">
         <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3 px-4 py-3">
           <Link href="/" className="font-semibold tracking-tight">
-            ToteNotes
+            BinThere
           </Link>
           <div className="flex items-center gap-2">
             <span className="text-muted-foreground hidden text-sm sm:inline">

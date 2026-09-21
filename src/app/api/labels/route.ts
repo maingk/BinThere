@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
   return new NextResponse(pdf as BodyInit, {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": 'inline; filename="totenotes-labels.pdf"',
+      "Content-Disposition": 'inline; filename="binthere-labels.pdf"',
       "Cache-Control": "no-store",
     },
   });

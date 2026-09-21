@@ -1,6 +1,7 @@
 /**
- * Hand-authored to match supabase/migrations. Once the Supabase project is
- * live, regenerate with `npm run db:types` and this file becomes generated.
+ * Hand-authored to mirror supabase/migrations, and verified against the live
+ * schema of the `binthere` project. Regenerate with `npm run db:types` after
+ * any migration; that overwrites this file with Supabase's own output.
  */
 
 export type ToteStatus = "unclaimed" | "active" | "archived";
@@ -146,6 +147,13 @@ export type Database = {
             columns: ["category_id"];
             isOneToOne: false;
             referencedRelation: "categories";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "totes_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
         ]

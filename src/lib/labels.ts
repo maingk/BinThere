@@ -110,7 +110,7 @@ export async function buildLabelPdf({
   copies = 2,
 }: LabelPdfOptions): Promise<Uint8Array> {
   const pdf = await PDFDocument.create();
-  pdf.setTitle("ToteNotes labels");
+  pdf.setTitle("BinThere labels");
 
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
   const regular = await pdf.embedFont(StandardFonts.Helvetica);

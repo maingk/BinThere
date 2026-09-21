@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { OnboardingForms } from "@/app/onboarding/onboarding-forms";
 
-export const metadata = { title: "Set up · ToteNotes" };
+export const metadata = { title: "Set up" };
 
 export default async function OnboardingPage() {
   const supabase = await createClient();
