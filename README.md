@@ -118,6 +118,28 @@ validates its own caller — and is the accepted state, not an outstanding bug.
 > `NEXT_PUBLIC_APP_URL` is encoded into printed labels. Set it to the production
 > origin **before** printing anything, or the labels will point at localhost.
 
+## Testing from a phone
+
+`npm run dev` binds to localhost, which a phone cannot reach — scanning a QR
+label would resolve `localhost` to the phone itself. Use:
+
+```bash
+npm run dev:lan
+```
+
+It detects the Mac's LAN address, serves on it, and overrides
+`NEXT_PUBLIC_APP_URL` for that run only, so QR codes encode an address the
+phone can actually load. `.env.local` is left untouched. Override the detected
+interface with `LAN_HOST=192.168.1.20 npm run dev:lan`.
+
+Add the printed callback URL (e.g. `http://192.168.68.93:3000/auth/callback`)
+to Supabase's Redirect URLs, or the magic link will bounce.
+
+Caveats: the address changes when DHCP reassigns it, and plain HTTP means
+"Add to Home Screen" won't behave like a real PWA. **Never print labels from
+this mode** — they would encode a private address that stops working. Deploy
+first, then print.
+
 ## Printing labels
 
 `/labels` generates blank codes and opens a print-ready PDF. Sheet presets live
