@@ -135,6 +135,11 @@ interface with `LAN_HOST=192.168.1.20 npm run dev:lan`.
 Add the printed callback URL (e.g. `http://192.168.68.93:3000/auth/callback`)
 to Supabase's Redirect URLs, or the magic link will bounce.
 
+`next.config.ts` adds the machine's private IPs to `allowedDevOrigins`. Without
+that, Next blocks cross-origin dev resources, React never hydrates, and forms
+fall through to the browser's native submit — the page reloads and the input
+vanishes with no error shown. It looks like the app is ignoring you.
+
 Caveats: the address changes when DHCP reassigns it, and plain HTTP means
 "Add to Home Screen" won't behave like a real PWA. **Never print labels from
 this mode** — they would encode a private address that stops working. Deploy
