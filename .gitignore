@@ -44,3 +44,7 @@ next-env.d.ts
 # Supabase CLI local state
 supabase/.temp/
 supabase/.branches/
+
+# Reference screenshots, not part of the app
+/Kobalt Tote.png
+*.reference.png
