@@ -5,18 +5,48 @@ import { LoginForm } from "@/app/login/login-form";
 
 export const metadata = { title: "Sign in" };
 
+/**
+ * Turns Supabase's wording into something actionable. The PKCE case is the
+ * one people actually hit: the sign-in form stores a verifier in the browser
+ * that started it, so opening the emailed link in a *different* browser
+ * cannot complete, and the raw message doesn't hint at that at all.
+ */
+function explainError(raw: string): { message: string; hint?: string } {
+  if (raw === "missing_code") {
+    return {
+      message: "That sign-in link was incomplete.",
+      hint: "Request a new one below.",
+    };
+  }
+  if (/code verifier|both auth code/i.test(raw)) {
+    return {
+      message: "That link was opened in a different browser.",
+      hint: "Request a new link below, then open it in this same browser — the sign-in has to finish where it started.",
+    };
+  }
+  if (/expired|invalid/i.test(raw)) {
+    return {
+      message: "That link has expired or was already used.",
+      hint: "Each link works once. Request a new one below.",
+    };
+  }
+  return { message: raw };
+}
+
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string }>;
+  searchParams: Promise<{ next?: string; error?: string }>;
 }) {
-  const { next } = await searchParams;
+  const { next, error } = await searchParams;
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (user) redirect(next ?? "/");
+
+  const explained = error ? explainError(error) : null;
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-sm flex-col justify-center gap-8 px-4 py-12">
@@ -26,6 +56,19 @@ export default async function LoginPage({
           Notes for Your Totes
         </p>
       </div>
+
+      {explained ? (
+        <div
+          role="alert"
+          className="border-destructive/30 bg-destructive/5 space-y-1 rounded-lg border p-4 text-sm"
+        >
+          <p className="text-destructive font-medium">{explained.message}</p>
+          {explained.hint ? (
+            <p className="text-muted-foreground">{explained.hint}</p>
+          ) : null}
+        </div>
+      ) : null}
+
       <LoginForm next={next} />
     </main>
   );

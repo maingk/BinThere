@@ -16,6 +16,11 @@ export async function GET(request: NextRequest) {
   const { error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
+    // Surfaced in the server log as well as the page: a failure here is
+    // otherwise invisible, since the user just lands back on the form.
+    console.error(
+      `[auth/callback] exchange failed: ${error.message} (status ${error.status ?? "?"})`,
+    );
     return NextResponse.redirect(
       `${origin}/login?error=${encodeURIComponent(error.message)}`,
     );
