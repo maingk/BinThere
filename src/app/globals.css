@@ -196,3 +196,48 @@
     animation: tote-scan-settle 5.5s ease-in-out infinite;
   }
 }
+
+/* ----------------------------------------------------------------- glass nav
+ * The header and the phone tab bar are panes of glass over the content that
+ * scrolls beneath them: a translucent tint, a blurred and slightly saturated
+ * backdrop so colour survives the blur, and a hairline highlight on the edge
+ * facing the light.
+ *
+ * The tint is deliberately heavy (72% of the page background). Thinner glass
+ * looks better over a photo and worse over text, and this nav is the thing
+ * that was being missed in the first place -- legibility beats the effect.
+ *
+ * Browsers without backdrop-filter fall back to an opaque surface rather than
+ * a see-through one, which is the failure mode that would actually hide the
+ * menu.
+ */
+.glass-nav {
+  background-color: color-mix(in oklab, var(--background) 72%, transparent);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+}
+
+@supports not (
+  (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
+) {
+  .glass-nav {
+    background-color: var(--background);
+  }
+}
+
+/*
+ * For the bar that floats over content: an inner top highlight plus a soft
+ * upward shadow, so it separates from whatever it covers instead of looking
+ * like the end of the page.
+ */
+.glass-nav-raised {
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.65),
+    0 -10px 24px -14px oklch(0 0 0 / 0.3);
+}
+
+.dark .glass-nav-raised {
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.1),
+    0 -10px 24px -14px oklch(0 0 0 / 0.7);
+}

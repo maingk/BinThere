@@ -2,17 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Boxes, House, QrCode, Search, Tags } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-
-const TABS = [
-  { href: "/", label: "Home", Icon: House },
-  { href: "/totes", label: "Totes", Icon: Boxes },
-  { href: "/search", label: "Search", Icon: Search },
-  { href: "/categories", label: "Categories", Icon: Tags },
-  { href: "/labels", label: "Labels", Icon: QrCode },
-] as const;
+import { NAV_ITEMS, isActivePath } from "@/components/nav-items";
 
 /**
  * Mobile navigation. A bottom bar rather than the desktop header row: this
@@ -26,16 +18,14 @@ export function BottomNav() {
     <nav
       aria-label="Primary"
       className={cn(
-        "fixed inset-x-0 bottom-0 z-30 sm:hidden",
-        "bg-background/85 border-t backdrop-blur-lg backdrop-saturate-150",
+        "glass-nav glass-nav-raised fixed inset-x-0 bottom-0 z-30 border-t sm:hidden",
         // Clears the iOS home indicator; needs viewportFit: "cover" to be set.
         "pb-[env(safe-area-inset-bottom)]",
       )}
     >
-      <ul className="flex items-stretch">
-        {TABS.map(({ href, label, Icon }) => {
-          const active =
-            href === "/" ? pathname === "/" : pathname.startsWith(href);
+      <ul className="mx-auto flex w-full max-w-3xl items-stretch">
+        {NAV_ITEMS.map(({ href, label, Icon }) => {
+          const active = isActivePath(href, pathname);
 
           return (
             <li key={href} className="flex-1">
@@ -44,11 +34,10 @@ export function BottomNav() {
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   // Tall enough to hit comfortably without looking at it.
-                  "flex min-h-14 flex-col items-center justify-center gap-1 px-1 py-2",
-                  "transition-colors",
+                  "flex min-h-14 flex-col items-center justify-center gap-1 px-1 py-2 transition-colors",
                   active
                     ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground",
+                    : "text-foreground/70 hover:text-foreground",
                 )}
               >
                 <Icon
