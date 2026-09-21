@@ -4,6 +4,7 @@ import { requireSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
 import { ToteCard } from "@/components/tote-card";
+import { ToteLookup } from "@/components/tote-lookup";
 import { Button } from "@/components/ui/button";
 import type { ToteRow } from "@/lib/database.types";
 
@@ -33,7 +34,7 @@ export default async function HomePage() {
     { label: "Totes", value: activeCount.count ?? 0, href: "/totes" },
     { label: "Items", value: itemCount.count ?? 0, href: "/search" },
     {
-      label: "Blank labels",
+      label: "Unused labels",
       value: unclaimedCount.count ?? 0,
       href: "/labels",
     },
@@ -60,6 +61,14 @@ export default async function HomePage() {
               </Link>
             ))}
           </div>
+        </section>
+
+        <section className="space-y-2">
+          <h2 className="text-sm font-medium">Type a label</h2>
+          <ToteLookup />
+          <p className="text-muted-foreground text-xs">
+            The label printed under the QR code on every sticker.
+          </p>
         </section>
 
         <section className="flex flex-wrap gap-2">

@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { SIZE_PREFIXES } from "@/lib/totes";
+import { SIZE_PREFIXES, formatToteLabel, type ToteLabelParts } from "@/lib/totes";
 import type { ActionState } from "@/app/totes/actions";
 import type { CategoryRow, ToteRow } from "@/lib/database.types";
 
@@ -30,30 +30,45 @@ export function ToteForm({
   categories,
   tote,
   submitLabel,
-  suggestedIndex,
+  lockLabel = false,
 }: {
   action: BoundToteAction;
   categories: CategoryRow[];
-  tote?: Pick<
-    ToteRow,
-    "size_prefix" | "index_no" | "name" | "category_id" | "description" | "location"
-  >;
+  tote?: Partial<ToteLabelParts> &
+    Partial<Pick<ToteRow, "name" | "category_id" | "description" | "location">>;
   submitLabel: string;
-  /** Pre-fills the number field for a brand-new tote. */
-  suggestedIndex?: number;
+  /**
+   * True once a sticker exists for this tote. Size and number are then fixed
+   * — the label is already on the lid — so we show them instead of editing.
+   */
+  lockLabel?: boolean;
 }) {
   const [state, formAction, pending] = useActionState(action, initial);
 
+  const printed =
+    tote?.size_prefix != null && tote?.index_no != null
+      ? formatToteLabel({
+          size_prefix: tote.size_prefix,
+          index_no: tote.index_no,
+        })
+      : null;
+
   return (
     <form action={formAction} className="space-y-5">
-      <div className="grid grid-cols-2 gap-3">
+      {lockLabel ? (
+        printed ? (
+          <div className="bg-muted/40 rounded-lg border p-3">
+            <p className="text-muted-foreground text-xs">Printed label</p>
+            <p className="font-mono text-lg font-medium">{printed}</p>
+            <p className="text-muted-foreground mt-1 text-xs">
+              Fixed — this is what the sticker says.
+            </p>
+          </div>
+        ) : null
+      ) : (
         <div className="space-y-2">
-          <Label htmlFor="size_prefix">Size</Label>
-          <Select
-            name="size_prefix"
-            defaultValue={tote?.size_prefix ?? "M"}
-            required
-          >
+          <Label htmlFor="size_prefix">Tote size</Label>
+          <Select name="size_prefix" defaultValue="27G" required>
             <SelectTrigger id="size_prefix" className="w-full">
               <SelectValue placeholder="Size" />
             </SelectTrigger>
@@ -65,20 +80,12 @@ export function ToteForm({
               ))}
             </SelectContent>
           </Select>
+          <p className="text-muted-foreground text-xs">
+            The number is assigned automatically, continuing from your last
+            tote of this size.
+          </p>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="index_no">Number</Label>
-          <Input
-            id="index_no"
-            name="index_no"
-            type="number"
-            inputMode="numeric"
-            min={1}
-            required
-            defaultValue={tote?.index_no ?? suggestedIndex ?? 1}
-          />
-        </div>
-      </div>
+      )}
 
       <div className="space-y-2">
         <Label htmlFor="name">Name</Label>
@@ -115,9 +122,13 @@ export function ToteForm({
         <Input
           id="location"
           name="location"
-          placeholder="Basement · rack 2 · top shelf"
+          placeholder="Level A · rack 2 · top shelf"
           defaultValue={tote?.location ?? ""}
         />
+        <p className="text-muted-foreground text-xs">
+          Not printed on the label, so you can move the tote without
+          re-stickering it.
+        </p>
       </div>
 
       <div className="space-y-2">

@@ -1,23 +1,18 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
+import { requireSession } from "@/lib/auth";
 import { appOrigin } from "@/lib/totes";
 import { buildLabelPdf, findSheet, type LabelTote } from "@/lib/labels";
 
 /**
  * Streams a printable PDF of QR labels.
- * ?codes=A,B,C  explicit codes; otherwise every unclaimed code.
- * ?sheet=       label stock id; ?copies= labels per tote (default 2).
+ * ?size=27G   restrict to one tote size; otherwise every unprinted label
+ * ?sheet=     label stock id; ?copies= labels per tote (default 2)
  */
 export async function GET(request: NextRequest) {
+  const session = await requireSession();
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "Not signed in" }, { status: 401 });
-  }
 
   const { searchParams } = request.nextUrl;
   const sheet = findSheet(searchParams.get("sheet"));
@@ -25,17 +20,17 @@ export async function GET(request: NextRequest) {
     Math.max(Number(searchParams.get("copies") ?? 2) || 2, 1),
     6,
   );
-  const codes = searchParams.get("codes")?.split(",").filter(Boolean);
+  const size = searchParams.get("size");
 
   // RLS keeps this to the caller's household.
   let query = supabase
     .from("totes")
-    .select("code, size_prefix, index_no, name")
-    .order("created_at");
+    .select("size_prefix, index_no, name")
+    .eq("status", "unclaimed")
+    .order("size_prefix")
+    .order("index_no");
 
-  query = codes?.length
-    ? query.in("code", codes)
-    : query.eq("status", "unclaimed");
+  if (size) query = query.eq("size_prefix", size.toUpperCase());
 
   const { data, error } = await query;
 
@@ -44,13 +39,14 @@ export async function GET(request: NextRequest) {
   }
   if (!data?.length) {
     return NextResponse.json(
-      { error: "No labels to print. Generate some blank codes first." },
+      { error: "No labels to print. Reserve some first." },
       { status: 404 },
     );
   }
 
   const pdf = await buildLabelPdf({
     totes: data as LabelTote[],
+    householdSlug: session.household.slug,
     origin: appOrigin(),
     sheet,
     copies,

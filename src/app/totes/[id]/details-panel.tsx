@@ -42,6 +42,7 @@ export function ToteDetailsPanel({
           categories={categories}
           tote={tote}
           submitLabel="Save changes"
+          lockLabel
         />
       ) : null}
 
@@ -89,8 +90,9 @@ export function ToteDetailsPanel({
         )}
       </div>
       <p className="text-muted-foreground text-xs">
-        Archiving keeps the tote and its QR label but hides it from the main
-        list. Deleting frees nothing — the printed label becomes unusable.
+        Archiving keeps the tote and its label but hides it from the main list.
+        Deleting frees the label number for reuse, which will clash with the
+        sticker already on the tote — peel it off first.
       </p>
     </section>
   );

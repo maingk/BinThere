@@ -60,13 +60,11 @@ export default async function SearchPage({
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 space-y-1">
                           <div className="flex items-center gap-2">
-                            {label ? (
-                              <span className="bg-secondary text-secondary-foreground rounded px-1.5 py-0.5 font-mono text-xs font-medium">
-                                {label}
-                              </span>
-                            ) : null}
+                            <span className="bg-secondary text-secondary-foreground rounded px-1.5 py-0.5 font-mono text-xs font-medium">
+                              {label}
+                            </span>
                             <span className="truncate font-medium">
-                              {result.name ?? "Unnamed tote"}
+                              {result.name ?? "Not yet recorded"}
                             </span>
                           </div>
                           {result.matched_items.length > 0 ? (

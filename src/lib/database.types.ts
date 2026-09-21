@@ -8,17 +8,19 @@ export type ToteStatus = "unclaimed" | "active" | "archived";
 
 export type HouseholdRow = {
   id: string;
+  /** Short public id used to scope QR URLs: /t/<slug>/17G-01. */
+  slug: string;
   name: string;
   invite_code: string;
   created_at: string;
-}
+};
 
 export type ProfileRow = {
   id: string;
   household_id: string | null;
   display_name: string | null;
   created_at: string;
-}
+};
 
 export type CategoryRow = {
   id: string;
@@ -27,15 +29,15 @@ export type CategoryRow = {
   color: string;
   sort_order: number;
   created_at: string;
-}
+};
 
 export type ToteRow = {
   id: string;
   household_id: string;
-  code: string;
   status: ToteStatus;
-  size_prefix: string | null;
-  index_no: number | null;
+  /** Printed identity. Fixed once the sticker exists. */
+  size_prefix: string;
+  index_no: number;
   name: string | null;
   category_id: string | null;
   description: string | null;
@@ -44,7 +46,7 @@ export type ToteRow = {
   claimed_at: string | null;
   created_at: string;
   updated_at: string;
-}
+};
 
 export type ItemRow = {
   id: string;
@@ -54,7 +56,7 @@ export type ItemRow = {
   notes: string | null;
   created_at: string;
   updated_at: string;
-}
+};
 
 export type TotePhotoRow = {
   id: string;
@@ -63,13 +65,12 @@ export type TotePhotoRow = {
   caption: string | null;
   is_primary: boolean;
   created_at: string;
-}
+};
 
 export type SearchResultRow = {
   id: string;
-  code: string;
-  size_prefix: string | null;
-  index_no: number | null;
+  size_prefix: string;
+  index_no: number;
   name: string | null;
   description: string | null;
   location: string | null;
@@ -193,8 +194,12 @@ export type Database = {
         Args: { p_invite_code: string; p_display_name: string | null };
         Returns: string;
       };
-      mint_tote_codes: { Args: { p_count: number }; Returns: ToteRow[] };
+      mint_totes: {
+        Args: { p_size_prefix: string; p_count: number };
+        Returns: ToteRow[];
+      };
       next_tote_index: { Args: { p_size_prefix: string }; Returns: number };
+      find_tote_by_label: { Args: { p_label: string }; Returns: string | null };
       search_totes: { Args: { q: string }; Returns: SearchResultRow[] };
       current_household_id: { Args: Record<string, never>; Returns: string };
     };

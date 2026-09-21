@@ -1,12 +1,22 @@
--- ToteNotes initial schema
--- Households, members, totes, items, categories, photos + RLS.
+-- BinThere initial schema.
+--
+-- Identity note: a tote is identified by the label printed on its sticker --
+-- size prefix + sequence number, e.g. "17G-01" -- which is unique within a
+-- household. There is no separate opaque code: the thing a person reads off
+-- the lid and the thing the QR encodes are the same value.
+--
+-- Only facts that can never change are printed. Where a tote lives is a
+-- mutable column, because totes move and a sticker cannot.
 
-create extension if not exists pg_trgm;
+create extension if not exists pg_trgm with schema extensions;
 
 -- ---------------------------------------------------------------- households
 
 create table public.households (
   id uuid primary key default gen_random_uuid(),
+  -- Short public identifier, used to scope QR URLs: /t/<slug>/17G-01.
+  -- Without it, two households numbering totes from 01 would collide.
+  slug text not null unique,
   name text not null,
   invite_code text not null unique default encode(gen_random_bytes(6), 'hex'),
   created_at timestamptz not null default now()
@@ -48,37 +58,38 @@ create index categories_household_idx on public.categories (household_id);
 
 -- --------------------------------------------------------------------- totes
 
+-- unclaimed = sticker printed, contents not yet recorded.
 create type public.tote_status as enum ('unclaimed', 'active', 'archived');
 
 create table public.totes (
   id uuid primary key default gen_random_uuid(),
   household_id uuid not null references public.households (id) on delete cascade,
-  -- Value encoded in the printed QR label. Assigned at print time, never reused.
-  code text not null unique,
+
+  -- Printed identity. Both are set when the label is printed and must not
+  -- change afterwards, because the sticker is already on the tote.
+  size_prefix text not null,
+  index_no int not null check (index_no between 1 and 999),
+
   status public.tote_status not null default 'unclaimed',
-  size_prefix text,
-  index_no int,
   name text,
   category_id uuid references public.categories (id) on delete set null,
   description text,
+  -- Deliberately not printed: totes get moved.
   location text,
   created_by uuid references public.profiles (id) on delete set null,
   claimed_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  constraint totes_active_needs_label check (
-    status = 'unclaimed' or (size_prefix is not null and index_no is not null)
-  )
-);
 
--- A tote's human label (e.g. "L-14") is unique within a household.
-create unique index totes_label_key
-  on public.totes (household_id, size_prefix, index_no)
-  where size_prefix is not null and index_no is not null;
+  -- Capacity plus unit, e.g. 17G, 27G. Permissive enough for 50L later.
+  constraint totes_size_prefix_format check (size_prefix ~ '^[0-9]{1,3}[A-Z]{1,2}$'),
+  -- The printed label is the tote's identity within its household.
+  constraint totes_label_key unique (household_id, size_prefix, index_no)
+);
 
 create index totes_household_idx on public.totes (household_id, status);
 create index totes_category_idx on public.totes (category_id);
-create index totes_name_trgm on public.totes using gin (name gin_trgm_ops);
+create index totes_name_trgm on public.totes using gin (name extensions.gin_trgm_ops);
 
 -- --------------------------------------------------------------------- items
 
@@ -93,7 +104,7 @@ create table public.items (
 );
 
 create index items_tote_idx on public.items (tote_id);
-create index items_name_trgm on public.items using gin (name gin_trgm_ops);
+create index items_name_trgm on public.items using gin (name extensions.gin_trgm_ops);
 
 -- -------------------------------------------------------------------- photos
 -- Storage-backed; no UI in v1, but the shape is fixed so adding one is additive.
@@ -112,7 +123,7 @@ create index tote_photos_tote_idx on public.tote_photos (tote_id);
 -- ------------------------------------------------------------------ triggers
 
 create or replace function public.touch_updated_at()
-returns trigger language plpgsql as $$
+returns trigger language plpgsql set search_path = '' as $$
 begin
   new.updated_at = now();
   return new;

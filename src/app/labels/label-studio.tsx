@@ -13,39 +13,64 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { mintCodesAction, type ActionState } from "@/app/labels/actions";
+import { mintLabelsAction, type ActionState } from "@/app/labels/actions";
+import { SIZE_PREFIXES } from "@/lib/totes";
 
 const initial: ActionState = { error: null };
 
+export interface PendingRun {
+  size: string;
+  labels: string[];
+}
+
 export function LabelStudio({
   sheets,
-  unclaimedCount,
-  unclaimedCodes,
+  pending,
 }: {
   sheets: { id: string; name: string }[];
-  unclaimedCount: number;
-  unclaimedCodes: string[];
+  pending: PendingRun[];
 }) {
-  const [state, formAction, pending] = useActionState(mintCodesAction, initial);
+  const [state, formAction, isMinting] = useActionState(
+    mintLabelsAction,
+    initial,
+  );
   const [sheet, setSheet] = useState(sheets[0]?.id ?? "avery-22806");
   const [copies, setCopies] = useState("2");
 
-  const printHref = `/api/labels?sheet=${sheet}&copies=${copies}`;
-  const printAllHref =
-    unclaimedCodes.length > 0
-      ? `${printHref}&codes=${unclaimedCodes.join(",")}`
-      : printHref;
+  const totalPending = pending.reduce((sum, run) => sum + run.labels.length, 0);
+
+  const printHref = (size?: string) => {
+    const params = new URLSearchParams({ sheet, copies });
+    if (size) params.set("size", size);
+    return `/api/labels?${params}`;
+  };
 
   return (
     <div className="space-y-6">
       <section className="space-y-4 rounded-lg border p-5">
         <div className="space-y-1">
-          <h2 className="font-medium">1. Generate blank codes</h2>
+          <h2 className="font-medium">1. Reserve labels</h2>
           <p className="text-muted-foreground text-sm">
-            Each code is unique and permanent. Make a few more than you need.
+            Numbering continues from your last tote of that size, so labels are
+            never reused.
           </p>
         </div>
-        <form action={formAction} className="flex items-end gap-2">
+        <form action={formAction} className="flex flex-wrap items-end gap-2">
+          <div className="space-y-2">
+            <Label htmlFor="size_prefix">Size</Label>
+            <Select name="size_prefix" defaultValue="27G">
+              <SelectTrigger id="size_prefix" className="w-44">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {SIZE_PREFIXES.map((size) => (
+                  <SelectItem key={size.value} value={size.value}>
+                    {size.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="space-y-2">
             <Label htmlFor="count">How many</Label>
             <Input
@@ -54,26 +79,23 @@ export function LabelStudio({
               type="number"
               min={1}
               max={200}
-              defaultValue={24}
-              className="w-28"
+              defaultValue={12}
+              className="w-24"
             />
           </div>
-          <Button type="submit" disabled={pending}>
-            {pending ? "Generating…" : "Generate"}
+          <Button type="submit" disabled={isMinting}>
+            {isMinting ? "Reserving…" : "Reserve"}
           </Button>
         </form>
         {state.error ? (
           <p className="text-destructive text-sm">{state.error}</p>
         ) : null}
-        {state.minted ? (
+        {state.minted?.length ? (
           <p className="text-sm text-emerald-600 dark:text-emerald-400">
-            Added {state.minted} blank codes.
+            Reserved {state.minted[0]} – {state.minted[state.minted.length - 1]}
+            .
           </p>
         ) : null}
-        <p className="text-muted-foreground text-sm">
-          {unclaimedCount} blank {unclaimedCount === 1 ? "code" : "codes"}{" "}
-          waiting to be printed.
-        </p>
       </section>
 
       <section className="space-y-4 rounded-lg border p-5">
@@ -118,25 +140,47 @@ export function LabelStudio({
 
         <Separator />
 
-        <Button asChild disabled={unclaimedCount === 0} className="w-full">
-          <a href={printAllHref} target="_blank" rel="noopener noreferrer">
-            {unclaimedCount === 0
-              ? "Generate codes first"
-              : `Open PDF — ${unclaimedCount} blank ${
-                  unclaimedCount === 1 ? "label" : "labels"
-                }`}
-          </a>
-        </Button>
-      </section>
-
-      {unclaimedCodes.length > 0 ? (
-        <section className="space-y-2">
-          <h2 className="font-medium">Blank codes</h2>
-          <p className="text-muted-foreground font-mono text-xs break-all">
-            {unclaimedCodes.join("  ·  ")}
+        {totalPending === 0 ? (
+          <p className="text-muted-foreground text-center text-sm">
+            No labels waiting to be printed. Reserve some above.
           </p>
-        </section>
-      ) : null}
+        ) : (
+          <div className="space-y-2">
+            {pending.map((run) => (
+              <div
+                key={run.size}
+                className="flex items-center justify-between gap-3 rounded-md border p-3"
+              >
+                <div className="min-w-0">
+                  <p className="font-medium">{run.size}</p>
+                  <p className="text-muted-foreground truncate text-xs">
+                    {run.labels[0]} – {run.labels[run.labels.length - 1]} (
+                    {run.labels.length})
+                  </p>
+                </div>
+                <Button asChild size="sm" variant="outline">
+                  <a
+                    href={printHref(run.size)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Print
+                  </a>
+                </Button>
+              </div>
+            ))}
+            <Button asChild className="w-full">
+              <a
+                href={printHref()}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Print all {totalPending} labels
+              </a>
+            </Button>
+          </div>
+        )}
+      </section>
     </div>
   );
 }

@@ -22,26 +22,47 @@ form instead.
 
 | Table | Purpose |
 |---|---|
-| `households` | One per family. Carries the invite code. |
+| `households` | One per family. Carries the invite code and the URL slug. |
 | `profiles` | Links an auth user to a household. |
 | `categories` | Holiday decorations, tableware, electronics, … |
-| `totes` | A physical tote. `code` is what the QR label encodes. |
+| `totes` | A physical tote, identified by its printed label. |
 | `items` | Individual contents of a tote. |
 | `tote_photos` | Storage-backed photos. Schema only — no UI yet. |
 
 Every table is locked to the caller's household by RLS, resolved through the
 `current_household_id()` helper.
 
+### Identity
+
+A tote is identified by the label printed on its sticker: size plus a sequence
+number, rendered `27G-01`. There is no separate opaque code — the thing a
+person reads off the lid, the thing the QR encodes, and the database key are
+all the same value. That means a label is typeable, which is the fallback when
+a sticker is damaged or a camera isn't handy.
+
+`27G-01` is only unique within a household, so the QR URL carries the
+household's slug: `/t/<slug>/27G-01`. Scanning another household's sticker
+misses rather than silently resolving to your own tote of the same number.
+
+**Only immutable facts are printed.** Size is a property of the physical tote
+and never changes. Where a tote lives is a mutable `location` column, shown on
+the tote page and searchable, because totes get moved and a sticker cannot be
+updated to follow them.
+
+`size_prefix` and `index_no` are set once, by `mint_totes()`, and no code path
+updates them afterwards — the sticker is already on the lid.
+
 ### Tote lifecycle
 
-1. **Mint** — `/labels` generates blank codes as `unclaimed` totes.
+1. **Reserve** — `/labels` calls `mint_totes('27G', 12)`, creating twelve
+   `unclaimed` totes numbered on from your last 27G.
 2. **Print** — `/api/labels` renders a PDF sheet, two labels per tote by default.
-3. **Register** — scanning an unclaimed code opens `/register/[code]`; saving it
-   assigns a size prefix, number and name, and flips it to `active`.
-4. **Use** — scanning an active code jumps straight to `/totes/[id]`.
+3. **Register** — scanning an unused label opens `/register/<slug>/27G-01`;
+   saving records the contents and flips it to `active`.
+4. **Use** — scanning a registered label jumps straight to `/totes/[id]`.
 
-A tote's human label is `size_prefix` + `index_no`, rendered as `L-14`, and is
-unique within a household.
+Typing a label into the lookup box on the home screen follows the same two
+destinations, so it behaves identically to scanning.
 
 ## Local setup
 
@@ -79,11 +100,11 @@ callable, and by whom:
 
 | Function | anon | authenticated |
 |---|---|---|
-| `create_household`, `join_household`, `mint_tote_codes`, `next_tote_index`, `search_totes`, `current_household_id` | ✗ | ✓ |
-| `gen_tote_code`, `touch_updated_at`, `touch_parent_tote` | ✗ | ✗ |
+| `create_household`, `join_household`, `mint_totes`, `next_tote_index`, `find_tote_by_label`, `search_totes`, `current_household_id` | ✗ | ✓ |
+| `gen_household_slug`, `touch_updated_at`, `touch_parent_tote` | ✗ | ✗ |
 
-The Supabase linter still flags the six signed-in RPCs as `SECURITY DEFINER`
-functions reachable by authenticated users. That is intentional — each one
+The Supabase linter still flags the signed-in `SECURITY DEFINER` RPCs as
+reachable by authenticated users. That is intentional — each one
 validates its own caller — and is the accepted state, not an outstanding bug.
 
 ### Environment

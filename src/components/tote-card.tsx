@@ -7,7 +7,7 @@ import type { ToteRow } from "@/lib/database.types";
 export interface ToteCardData
   extends Pick<
     ToteRow,
-    "id" | "code" | "name" | "size_prefix" | "index_no" | "location" | "description"
+    "id" | "name" | "size_prefix" | "index_no" | "location" | "description"
   > {
   categoryName?: string | null;
   itemCount?: number;
@@ -24,13 +24,11 @@ export function ToteCard({ tote }: { tote: ToteCardData }) {
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 space-y-1">
           <div className="flex items-center gap-2">
-            {label ? (
-              <span className="bg-secondary text-secondary-foreground rounded px-1.5 py-0.5 font-mono text-xs font-medium">
-                {label}
-              </span>
-            ) : null}
+            <span className="bg-secondary text-secondary-foreground rounded px-1.5 py-0.5 font-mono text-xs font-medium">
+              {label}
+            </span>
             <span className="truncate font-medium">
-              {tote.name ?? "Unnamed tote"}
+              {tote.name ?? "Not yet recorded"}
             </span>
           </div>
           {tote.location ? (

@@ -10,10 +10,10 @@ export default async function NewTotePage() {
   const session = await requireSession();
   const supabase = await createClient();
 
-  const [{ data: categories }, { data: suggestedIndex }] = await Promise.all([
-    supabase.from("categories").select("*").order("sort_order"),
-    supabase.rpc("next_tote_index", { p_size_prefix: "M" }),
-  ]);
+  const { data: categories } = await supabase
+    .from("categories")
+    .select("*")
+    .order("sort_order");
 
   return (
     <AppShell householdName={session.household.name}>
@@ -21,14 +21,15 @@ export default async function NewTotePage() {
         <div className="space-y-2">
           <h1 className="text-2xl font-semibold tracking-tight">Add a tote</h1>
           <p className="text-muted-foreground text-sm">
-            This mints a fresh QR code you can print later from the Labels page.
+            For a tote you&apos;re cataloguing before its sticker exists. This
+            reserves the next label for the size you pick; print it later from
+            the Labels page.
           </p>
         </div>
         <ToteForm
           action={createToteAction}
           categories={categories ?? []}
           submitLabel="Create tote"
-          suggestedIndex={suggestedIndex ?? 1}
         />
       </div>
     </AppShell>

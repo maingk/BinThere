@@ -2,7 +2,7 @@ import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import type { PDFFont, PDFPage } from "pdf-lib";
 
 import { toteQrMatrix } from "@/lib/qr";
-import { formatToteLabel } from "@/lib/totes";
+import { formatToteLabel, type ToteLabelParts } from "@/lib/totes";
 import type { ToteRow } from "@/lib/database.types";
 
 const PT_PER_INCH = 72;
@@ -81,10 +81,12 @@ export function findSheet(id: string | null | undefined): SheetSpec {
   return SHEETS.find((sheet) => sheet.id === id) ?? SHEETS[0];
 }
 
-export type LabelTote = Pick<ToteRow, "code" | "size_prefix" | "index_no" | "name">;
+export type LabelTote = ToteLabelParts & Pick<ToteRow, "name">;
 
 export interface LabelPdfOptions {
   totes: LabelTote[];
+  /** Scopes the QR URL; every label on a sheet belongs to one household. */
+  householdSlug: string;
   origin: string;
   sheet: SheetSpec;
   /** Two per tote by default: one for the lid, one for the front. */
@@ -105,6 +107,7 @@ interface TextLine {
 
 export async function buildLabelPdf({
   totes,
+  householdSlug,
   origin,
   sheet,
   copies = 2,
@@ -160,35 +163,24 @@ export async function buildLabelPdf({
        */
       const sideBySide = sheet.labelWidth / sheet.labelHeight >= 1.5;
 
-      const label = formatToteLabel(tote);
-      const titleSize = label ? (sideBySide ? 26 : 14) : sideBySide ? 13 : 7.5;
-
       const lines: TextLine[] = [
         {
-          text: label ?? "SCAN TO SET UP",
-          size: titleSize,
+          text: formatToteLabel(tote),
+          size: sideBySide ? 30 : 17,
           font: bold,
           color: rgb(0, 0, 0),
           leadBefore: 0,
         },
       ];
 
-      if (tote.name) {
-        lines.push({
-          text: tote.name,
-          size: sideBySide ? 9 : 7,
-          font: regular,
-          color: rgb(0.25, 0.25, 0.25),
-          leadBefore: in2pt(0.045),
-        });
-      }
-
+      // An unnamed tote is one whose sticker is printed but contents aren't
+      // recorded; the prompt tells whoever scans it what to expect.
       lines.push({
-        text: tote.code,
-        size: 6.5,
+        text: tote.name ?? "scan to set up",
+        size: sideBySide ? 9.5 : 7.5,
         font: regular,
-        color: rgb(0.55, 0.55, 0.55),
-        leadBefore: in2pt(0.035),
+        color: rgb(0.35, 0.35, 0.35),
+        leadBefore: in2pt(0.05),
       });
 
       const textHeight = lines.reduce(
@@ -207,7 +199,7 @@ export async function buildLabelPdf({
         ? y + (sheet.labelHeight - qrBox) / 2
         : y + sheet.labelHeight - padding - qrBox;
 
-      drawQr(page, tote.code, origin, qrX, qrY, qrBox);
+      drawQr(page, householdSlug, tote, origin, qrX, qrY, qrBox);
 
       const textLeft = sideBySide ? qrX + qrBox + in2pt(0.12) : x + padding;
       const textWidth = sideBySide
@@ -244,13 +236,14 @@ export async function buildLabelPdf({
 /** Draws the QR, quiet zone included, fitted to a `box` square at (x, y). */
 function drawQr(
   page: PDFPage,
-  code: string,
+  householdSlug: string,
+  tote: ToteLabelParts,
   origin: string,
   x: number,
   y: number,
   box: number,
 ) {
-  const matrix = toteQrMatrix(code, origin);
+  const matrix = toteQrMatrix(householdSlug, tote, origin);
   const cell = box / (matrix.size + QUIET_MODULES * 2);
   const offset = QUIET_MODULES * cell;
 
