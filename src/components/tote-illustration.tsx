@@ -19,6 +19,16 @@ const STEP = 6.5;
 const QR_X = 84.5;
 const QR_Y = 91.5;
 
+/*
+ * The beam sweeps the code itself, not the label's padding. Derived from the
+ * grid so the two cannot drift apart: hardcoding the travel let the beam run
+ * past the last row and clip against the label edge.
+ */
+const GRID_BOTTOM = QR_Y + 4 * STEP + CELL;
+const BEAM_START = QR_Y - 3;
+const BEAM_TRAVEL = GRID_BOTTOM - BEAM_START;
+const BEAM_GLOW_HEIGHT = 13;
+
 export function ToteIllustration({
   className,
   title = "A storage tote with a QR label on the front",
@@ -177,17 +187,23 @@ export function ToteIllustration({
 
       {/* The scan sweep, clipped so it only ever travels across the label. */}
       {scan ? (
-        <g clipPath={`url(#${labelClip})`} className="tote-scan-line">
+        <g
+          clipPath={`url(#${labelClip})`}
+          className="tote-scan-line"
+          style={
+            { "--tote-scan-travel": `${BEAM_TRAVEL}px` } as React.CSSProperties
+          }
+        >
           <rect
             x="76"
-            y="80"
+            y={BEAM_START + 0.6 - BEAM_GLOW_HEIGHT / 2}
             width="48"
-            height="13"
+            height={BEAM_GLOW_HEIGHT}
             fill={`url(#${scanGradient})`}
           />
           <rect
             x="76"
-            y="86"
+            y={BEAM_START}
             width="48"
             height="1.2"
             className="fill-sky-400 dark:fill-sky-200"

@@ -153,16 +153,17 @@
     opacity: 0;
     transform: translateY(0);
   }
-  10% {
+  12% {
     opacity: 1;
   }
-  38% {
+  28% {
     opacity: 1;
   }
-  46%,
+  /* Fades out exactly as it reaches the last row, so it never shows below it. */
+  42%,
   100% {
     opacity: 0;
-    transform: translateY(46px);
+    transform: translateY(var(--tote-scan-travel, 34px));
   }
 }
 
@@ -171,11 +172,11 @@
   40% {
     stroke-opacity: 1;
   }
-  /* A brief confirmation flash as the sweep clears the label. */
-  50% {
+  /* A brief confirmation flash, timed to the end of the sweep. */
+  48% {
     stroke-opacity: 0.15;
   }
-  62%,
+  58%,
   100% {
     stroke-opacity: 1;
   }
@@ -183,7 +184,12 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .tote-scan-line {
-    animation: tote-scan-sweep 5.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    /*
+     * Linear on purpose: an eased sweep decelerates so hard at the end that
+     * the fade-out compresses into the last unit of travel and reads as a
+     * blink rather than a dissolve. A scanner moves at constant speed anyway.
+     */
+    animation: tote-scan-sweep 5.5s linear infinite;
   }
 
   .tote-scan-frame {
