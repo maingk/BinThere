@@ -22,11 +22,8 @@ export default async function LoginPage({
     <main className="mx-auto flex min-h-dvh w-full max-w-sm flex-col justify-center gap-8 px-4 py-12">
       <div className="space-y-2 text-center">
         <h1 className="text-3xl font-semibold tracking-tight">BinThere</h1>
-        <p className="text-muted-foreground text-xs tracking-[0.2em] uppercase">
-          ToteNotes
-        </p>
-        <p className="text-muted-foreground text-sm">
-          Know what&apos;s in the basement without opening a single lid.
+        <p className="font-hand text-muted-foreground text-3xl">
+          Notes for Your Totes
         </p>
       </div>
       <LoginForm next={next} />

@@ -1,6 +1,6 @@
 # BinThere
 
-*ToteNotes*
+*Notes for Your Totes*
 
 Know what's in the basement without opening a single lid.
 

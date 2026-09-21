@@ -1,7 +1,7 @@
 {
   "name": "BinThere",
   "short_name": "BinThere",
-  "description": "ToteNotes \u2014 scan a tote, see what's inside.",
+  "description": "Notes for your totes. Scan a tote, see what's inside.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
