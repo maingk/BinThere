@@ -47,4 +47,6 @@ supabase/.branches/
 
 # Reference screenshots, not part of the app
 /Kobalt Tote.png
+/Sign in · BinThere*.png
+/192.168.*.png
 *.reference.png

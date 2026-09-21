@@ -35,6 +35,10 @@ function lanOrigins(): string[] {
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: lanOrigins(),
+
+  // Default is bottom-left, which sits directly on top of the Home tab in the
+  // mobile navigation and hides it exactly while testing on a phone.
+  devIndicators: { position: "top-left" },
 };
 
 export default nextConfig;

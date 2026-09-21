@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { NavLink } from "@/components/nav-link";
+import { BottomNav } from "@/components/bottom-nav";
 
 const NAV = [
   { href: "/", label: "Home" },
@@ -36,7 +37,10 @@ export function AppShell({
             </form>
           </div>
         </div>
-        <nav className="mx-auto w-full max-w-3xl overflow-x-auto px-4 pb-2">
+        <nav
+          aria-label="Primary"
+          className="mx-auto hidden w-full max-w-3xl overflow-x-auto px-4 pb-2 sm:block"
+        >
           <ul className="flex gap-1 text-sm">
             {NAV.map((item) => (
               <li key={item.href}>
@@ -46,9 +50,11 @@ export function AppShell({
           </ul>
         </nav>
       </header>
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6">
+      <main className="mx-auto w-full max-w-3xl flex-1 px-4 pt-6 pb-28 sm:pb-6">
         {children}
       </main>
+
+      <BottomNav />
     </div>
   );
 }

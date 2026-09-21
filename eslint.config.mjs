@@ -22,6 +22,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Parallel Claude Code sessions keep their worktrees (and their own build
+    // output) inside the project, which would otherwise be linted as source.
+    ".claude/worktrees/**",
   ]),
 ]);
 
