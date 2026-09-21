@@ -22,15 +22,19 @@ const QR_Y = 91.5;
 export function ToteIllustration({
   className,
   title = "A storage tote with a QR label on the front",
+  decorative = false,
 }: {
   className?: string;
   title?: string;
+  /** Background use: hidden from screen readers, which would only hear noise. */
+  decorative?: boolean;
 }) {
   return (
     <svg
       viewBox="0 0 200 170"
-      role="img"
-      aria-label={title}
+      {...(decorative
+        ? { "aria-hidden": true as const }
+        : { role: "img", "aria-label": title })}
       className={className}
     >
       {/* Ground shadow, so it sits rather than floats. */}
@@ -137,12 +141,6 @@ export function ToteIllustration({
             ) : null,
           ),
         )}
-      </g>
-
-      {/* Latches, straddling the rim so the lid reads as clipped down. */}
-      <g className="fill-blue-700 dark:fill-blue-600">
-        <path d="M54 57 h12 v15 a6 6 0 0 1 -12 0 Z" />
-        <path d="M134 57 h12 v15 a6 6 0 0 1 -12 0 Z" />
       </g>
 
       {/* Lid, overhanging the tub on both sides. */}

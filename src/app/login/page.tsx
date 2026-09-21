@@ -50,28 +50,44 @@ export default async function LoginPage({
   const explained = error ? explainError(error) : null;
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-sm flex-col justify-center gap-8 px-4 py-12">
-      <div className="space-y-2 text-center">
-        <ToteIllustration className="mx-auto h-32 w-auto" />
-        <h1 className="text-3xl font-semibold tracking-tight">BinThere</h1>
-        <p className="font-hand text-muted-foreground text-3xl">
-          Notes for Your Totes
-        </p>
-      </div>
+    <main className="relative flex min-h-dvh w-full items-center justify-center overflow-hidden px-4 py-12">
+      <div className="relative isolate w-full max-w-sm">
+        {/*
+          Anchored to the form rather than the viewport, so the tote stays
+          tucked under it at any window height instead of drifting to the
+          bottom of a tall screen. It runs off the frame below, cropped by
+          the overflow-hidden on <main>.
+        */}
+        <ToteIllustration
+          decorative
+          className="pointer-events-none absolute left-1/2 top-full -z-10 w-[min(155vw,680px)] max-w-none -translate-x-1/2 -translate-y-[14%] opacity-[0.55]"
+        />
 
-      {explained ? (
-        <div
-          role="alert"
-          className="border-destructive/30 bg-destructive/5 space-y-1 rounded-lg border p-4 text-sm"
-        >
-          <p className="text-destructive font-medium">{explained.message}</p>
-          {explained.hint ? (
-            <p className="text-muted-foreground">{explained.hint}</p>
+        <div className="flex flex-col gap-8">
+          <div className="space-y-2 text-center">
+            <h1 className="text-3xl font-semibold tracking-tight">BinThere</h1>
+            <p className="font-hand text-muted-foreground text-3xl">
+              Notes for Your Totes
+            </p>
+          </div>
+
+          {explained ? (
+            <div
+              role="alert"
+              className="border-destructive/30 bg-destructive/5 space-y-1 rounded-lg border p-4 text-sm"
+            >
+              <p className="text-destructive font-medium">
+                {explained.message}
+              </p>
+              {explained.hint ? (
+                <p className="text-muted-foreground">{explained.hint}</p>
+              ) : null}
+            </div>
           ) : null}
-        </div>
-      ) : null}
 
-      <LoginForm next={next} />
+          <LoginForm next={next} />
+        </div>
+      </div>
     </main>
   );
 }
