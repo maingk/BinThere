@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="ToteNotes">
+  <rect width="512" height="512" rx="112" fill="#0f172a"/>
+  <!-- tote body -->
+  <path d="M128 176h256l-24 208a24 24 0 0 1-24 21H176a24 24 0 0 1-24-21z" fill="#f8fafc"/>
+  <!-- lid -->
+  <rect x="112" y="140" width="288" height="48" rx="16" fill="#38bdf8"/>
+  <!-- qr glyph on the front -->
+  <g fill="#0f172a">
+    <rect x="196" y="236" width="40" height="40" rx="6"/>
+    <rect x="276" y="236" width="40" height="40" rx="6"/>
+    <rect x="196" y="316" width="40" height="40" rx="6"/>
+    <rect x="288" y="328" width="28" height="28" rx="5"/>
+  </g>
+</svg>
