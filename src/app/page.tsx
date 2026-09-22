@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
 import { ToteCard } from "@/components/tote-card";
 import { ToteLookup } from "@/components/tote-lookup";
+import { HouseholdBanner } from "@/components/household-banner";
 import { Button } from "@/components/ui/button";
 import type { ToteRow } from "@/lib/database.types";
 
@@ -31,10 +32,10 @@ export default async function HomePage() {
   ]);
 
   const stats = [
-    { label: "Totes", value: activeCount.count ?? 0, href: "/totes" },
-    { label: "Items", value: itemCount.count ?? 0, href: "/search" },
+    { label: "totes", value: activeCount.count ?? 0, href: "/totes" },
+    { label: "items", value: itemCount.count ?? 0, href: "/search" },
     {
-      label: "Unused labels",
+      label: "labels",
       value: unclaimedCount.count ?? 0,
       href: "/labels",
     },
@@ -42,27 +43,9 @@ export default async function HomePage() {
 
   return (
     <AppShell householdName={session.household.name}>
-      <div className="space-y-8">
-        <section className="space-y-3">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {session.household.name}
-          </h1>
-          <div className="grid grid-cols-3 gap-2">
-            {stats.map((stat) => (
-              <Link
-                key={stat.label}
-                href={stat.href}
-                className="hover:bg-accent/50 rounded-lg border p-4 transition-colors"
-              >
-                <p className="text-2xl font-semibold tabular-nums">
-                  {stat.value}
-                </p>
-                <p className="text-muted-foreground text-xs">{stat.label}</p>
-              </Link>
-            ))}
-          </div>
-        </section>
+      <HouseholdBanner householdName={session.household.name} stats={stats} />
 
+      <div className="space-y-8">
         <section className="space-y-2">
           <h2 className="text-sm font-medium">Type a label</h2>
           <ToteLookup />
