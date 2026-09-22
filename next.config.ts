@@ -36,9 +36,21 @@ function lanOrigins(): string[] {
 const nextConfig: NextConfig = {
   allowedDevOrigins: lanOrigins(),
 
-  // Default is bottom-left, which sits directly on top of the Home tab in the
-  // mobile navigation and hides it exactly while testing on a phone.
-  devIndicators: { position: "top-left" },
+  /*
+   * Off, not repositioned.
+   *
+   * Chrome's autofill stamps __gcrremoteframetoken onto <html> and
+   * __gcruniqueid onto every <form> and <input> before React hydrates, so the
+   * indicator reports a hydration mismatch on every page. Nothing in this app
+   * causes it and nothing in this app can prevent it; the sign-out form lives
+   * in the shell, so there is no page without a form to tag.
+   *
+   * suppressHydrationWarning would mean adding it to <html> and to every form
+   * and input in perpetuity, masking real mismatches as it went. The badge is
+   * development-only UI and never ships, so switching it off costs nothing at
+   * runtime. Real errors still surface in the terminal and the browser console.
+   */
+  devIndicators: false,
 };
 
 export default nextConfig;
