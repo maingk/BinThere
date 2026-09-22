@@ -1,14 +1,20 @@
 import type { Metadata, Viewport } from "next";
-import { Caveat, Geist, Geist_Mono } from "next/font/google";
+import { Caveat, Geist_Mono, Newsreader, Work_Sans } from "next/font/google";
 
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const sans = Work_Sans({ variable: "--font-sans", subsets: ["latin"] });
+
+// Newsreader carries an optical-size axis, so headings are shaped for their
+// size rather than scaled from one master. See font-optical-sizing in globals.
+const heading = Newsreader({
+  variable: "--font-heading",
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
 });
+
+const mono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 // Handwritten accent for the tagline. Swap the import to change the voice.
 const hand = Caveat({ variable: "--font-hand", subsets: ["latin"] });
@@ -36,7 +42,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       // Chrome's autofill adds __gcrremoteframetoken here before hydration.
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} ${hand.variable} h-full antialiased`}
+      className={`${sans.variable} ${heading.variable} ${mono.variable} ${hand.variable} h-full antialiased`}
     >
       <body className="bg-background text-foreground flex min-h-full flex-col">
         {children}

@@ -83,7 +83,7 @@ export default async function ToteDetailPage({
               className="rounded border bg-white p-1"
               unoptimized
             />
-            <span className="text-muted-foreground mt-1 block font-mono text-[10px]">
+            <span className="text-muted-foreground mt-1 block font-mono text-[0.625rem]">
               {label}
             </span>
           </a>

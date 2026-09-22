@@ -85,7 +85,7 @@ export function ToteIllustration({
           y1="0"
           x2="0"
           y2="1"
-          className="text-sky-500 dark:text-sky-300"
+          className="text-primary"
         >
           <stop offset="0%" stopColor="currentColor" stopOpacity="0" />
           <stop offset="50%" stopColor="currentColor" stopOpacity="0.85" />
@@ -108,7 +108,7 @@ export function ToteIllustration({
           height="17"
           rx="4"
           transform="rotate(-3 78 80)"
-          className="fill-amber-400/70 dark:fill-amber-300/40"
+          className="fill-[#C9A227]/70"
         />
         <rect
           x="102"
@@ -117,7 +117,7 @@ export function ToteIllustration({
           height="15"
           rx="4"
           transform="rotate(2 119 82)"
-          className="fill-teal-400/70 dark:fill-teal-300/40"
+          className="fill-[#5F8F6B]/70"
         />
         <rect
           x="58"
@@ -125,7 +125,7 @@ export function ToteIllustration({
           width="30"
           height="26"
           rx="4"
-          className="fill-rose-300/60 dark:fill-rose-300/25"
+          className="fill-[#B2604C]/55"
         />
         <rect
           x="116"
@@ -133,7 +133,7 @@ export function ToteIllustration({
           width="28"
           height="22"
           rx="4"
-          className="fill-sky-300/60 dark:fill-sky-300/25"
+          className="fill-[#5B7FA3]/55"
         />
       </g>
 
@@ -206,7 +206,7 @@ export function ToteIllustration({
             y={BEAM_START}
             width="48"
             height="1.2"
-            className="fill-sky-400 dark:fill-sky-200"
+            className="fill-primary"
           />
         </g>
       ) : null}
@@ -214,12 +214,12 @@ export function ToteIllustration({
       {/* Lid, overhanging the tub on both sides. */}
       <path
         d="M36 44 H164 a6 6 0 0 1 6 6 v8 a6 6 0 0 1 -6 6 H36 a6 6 0 0 1 -6 -6 v-8 a6 6 0 0 1 6 -6 Z"
-        className="fill-blue-600 dark:fill-blue-500"
+        className="fill-primary"
       />
       {/* Moulded lip along the bottom edge, and a highlight along the top. */}
       <path
         d="M38 61 H162"
-        className="stroke-blue-800/45 dark:stroke-blue-900/45"
+        className="stroke-black/25"
         strokeWidth="4"
         strokeLinecap="round"
       />
