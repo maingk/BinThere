@@ -9,6 +9,17 @@ import { SIZE_VALUES, formatToteLabel } from "@/lib/totes";
 
 export type ActionState = { error: string | null; ok?: boolean };
 
+/*
+ * A tote is reachable at two URLs: /totes/<id> and the scan URL printed on its
+ * label. Both have to be refreshed after a change, and the actions do not know
+ * the scan URL's slug or label, so the whole /t subtree is revalidated.
+ */
+function revalidateTote(toteId: string) {
+  revalidatePath(`/totes/${toteId}`);
+  revalidatePath("/totes");
+  revalidatePath("/t", "layout");
+}
+
 /** Form selects submit a sentinel rather than "" for "no choice". */
 const NO_CATEGORY = "__none__";
 
@@ -61,7 +72,7 @@ export async function claimToteAction(
   if (error) return { error: error.message };
   if (!data) return { error: "That label has already been registered." };
 
-  revalidatePath("/totes");
+  revalidateTote(data.id);
   redirect(`/totes/${data.id}`);
 }
 
@@ -103,7 +114,7 @@ export async function createToteAction(
 
   if (error) return { error: error.message };
 
-  revalidatePath("/totes");
+  revalidateTote(data.id);
   revalidatePath("/labels");
   redirect(`/totes/${data.id}`);
 }
@@ -124,8 +135,7 @@ export async function updateToteAction(
 
   if (error) return { error: error.message };
 
-  revalidatePath(`/totes/${toteId}`);
-  revalidatePath("/totes");
+  revalidateTote(toteId);
   return { error: null, ok: true };
 }
 
@@ -138,8 +148,7 @@ export async function setToteStatusAction(
 ): Promise<void> {
   const supabase = await createClient();
   await supabase.from("totes").update({ status }).eq("id", toteId);
-  revalidatePath(`/totes/${toteId}`);
-  revalidatePath("/totes");
+  revalidateTote(toteId);
 }
 
 export async function deleteToteAction(
@@ -218,7 +227,7 @@ export async function addItemAction(
 
   if (error) return { error: error.message };
 
-  revalidatePath(`/totes/${toteId}`);
+  revalidateTote(toteId);
   return { error: null, ok: true };
 }
 
@@ -243,7 +252,7 @@ export async function updateItemAction(
 
   if (error) return { error: error.message };
 
-  revalidatePath(`/totes/${toteId}`);
+  revalidateTote(toteId);
   return { error: null, ok: true };
 }
 
@@ -254,5 +263,5 @@ export async function deleteItemAction(
 ): Promise<void> {
   const supabase = await createClient();
   await supabase.from("items").delete().eq("id", itemId);
-  revalidatePath(`/totes/${toteId}`);
+  revalidateTote(toteId);
 }

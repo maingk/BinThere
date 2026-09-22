@@ -205,6 +205,35 @@
   }
 }
 
+/* ----------------------------------------------------------------- press
+ * Feedback belongs on pointer-down, not on release. Without it a tap feels
+ * dead until the next page arrives, which on a phone is long enough to make
+ * people tap twice.
+ *
+ * transform and background-color only -- both composite, so the press cannot
+ * cost a layout on a mid-range phone.
+ */
+.press {
+  transition:
+    transform 110ms cubic-bezier(0.2, 0, 0, 1),
+    background-color 110ms cubic-bezier(0.2, 0, 0, 1);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.press:active {
+  transform: scale(0.985);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .press {
+    transition: background-color 110ms ease;
+  }
+  .press:active {
+    transform: none;
+  }
+}
+
 /* ------------------------------------------------------------------ type
  * Headings take the serif everywhere rather than each component opting in,
  * so the voice is consistent and adding a page cannot forget it.

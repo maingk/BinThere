@@ -55,7 +55,7 @@ export default async function SearchPage({
                   <li key={result.id}>
                     <Link
                       href={`/totes/${result.id}`}
-                      className="hover:bg-accent/50 block rounded-lg border p-4 transition-colors"
+                      className="press hover:bg-accent/50 active:bg-accent/70 block rounded-lg border p-4"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 space-y-1">

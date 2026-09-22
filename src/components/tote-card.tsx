@@ -19,7 +19,7 @@ export function ToteCard({ tote }: { tote: ToteCardData }) {
   return (
     <Link
       href={`/totes/${tote.id}`}
-      className="hover:bg-accent/50 block rounded-lg border p-4 transition-colors"
+      className="press hover:bg-accent/50 active:bg-accent/70 block rounded-lg border p-4"
     >
       {/*
         Two rows, not one. At 375px a single row had to share width between the
@@ -28,7 +28,15 @@ export function ToteCard({ tote }: { tote: ToteCardData }) {
         now owns the first row; everything secondary sits on the second.
       */}
       <div className="flex items-baseline gap-2">
-        <span className="bg-secondary text-secondary-foreground shrink-0 rounded px-1.5 py-0.5 font-mono text-xs font-medium whitespace-nowrap tabular-nums">
+        {/*
+          Pairs with the same name on the tote page's header. Inert until view
+          transitions are switched on; harmless until then, and it keeps the
+          two halves of the morph from drifting apart in the meantime.
+        */}
+        <span
+          style={{ viewTransitionName: `tote-label-${tote.id}` }}
+          className="bg-secondary text-secondary-foreground shrink-0 rounded px-1.5 py-0.5 font-mono text-xs font-medium whitespace-nowrap tabular-nums"
+        >
           {label}
         </span>
         <span className="truncate font-medium">

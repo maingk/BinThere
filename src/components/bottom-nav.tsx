@@ -34,7 +34,7 @@ export function BottomNav() {
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   // Tall enough to hit comfortably without looking at it.
-                  "flex min-h-14 flex-col items-center justify-center gap-1 px-1 py-2 transition-colors",
+                  "press flex min-h-14 flex-col items-center justify-center gap-1 px-1 py-2",
                   active
                     ? "text-primary"
                     : "text-foreground/70 hover:text-foreground",
